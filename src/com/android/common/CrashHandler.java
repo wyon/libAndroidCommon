@@ -23,75 +23,74 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
-
 /* 
  * class CustomApplication extends Application{
  * 		@Override public void onCreate() {
-			super.onCreate();
-			CrashHandler.getInstance().init(this);
-		    reportCrashLogs();
-		
-		// test();
-	}
+ super.onCreate();
+ CrashHandler.getInstance().init(this);
+ reportCrashLogs();
+
+ // test();
+ }
  * }
  * private void reportCrashLogs() {
-		new Thread("reportCrashLogs_thread") {
-			public void run() {
-				try {
-					File[] crashLog = CrashHandler.getCrashFiles();
-					if (crashLog != null && crashLog.length > 0) {
-						StringWriter sw = null;
-						Reader reader = null;
-						char[] buffer = new char[1024];
-						int len;
+ new Thread("reportCrashLogs_thread") {
+ public void run() {
+ try {
+ File[] crashLog = CrashHandler.getCrashFiles();
+ if (crashLog != null && crashLog.length > 0) {
+ StringWriter sw = null;
+ Reader reader = null;
+ char[] buffer = new char[1024];
+ int len;
 
-						for (File file : crashLog) {
-							try {
-								// reader to string
-								sw = new StringWriter();
-								reader = new BufferedReader(
-										new FileReader(file));
+ for (File file : crashLog) {
+ try {
+ // reader to string
+ sw = new StringWriter();
+ reader = new BufferedReader(
+ new FileReader(file));
 
-								while ((len = reader.read(buffer)) > 0) {
-									sw.write(buffer, 0, len);
-								}
+ while ((len = reader.read(buffer)) > 0) {
+ sw.write(buffer, 0, len);
+ }
 
-								reader.close();
-								reader = null;
+ reader.close();
+ reader = null;
 
-								// send
-								String filename = file.getName();
-								boolean res = DoctorServer.reportLog(filename,
-										sw.toString());
+ // send
+ String filename = file.getName();
+ boolean res = DoctorServer.reportLog(filename,
+ sw.toString());
 
-								// delete
-								if (res) {
-									try {
-										file.delete();
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-							} catch (Exception e) {
-								e.printStackTrace();
-							} finally {
-								if (reader != null) {
-									try {
-										reader.close();
-									} catch (Exception e2) {
-										e2.printStackTrace();
-									}
-								}
-								reader = null;
-							}
-						}
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			};
-		}.start();
-	}
+ // delete
+ if (res) {
+ try {
+ file.delete();
+ } catch (Exception e) {
+ e.printStackTrace();
+ }
+ }
+ } catch (Exception e) {
+ e.printStackTrace();
+ } finally {
+ if (reader != null) {
+ try {
+ reader.close();
+ } catch (Exception e2) {
+ e2.printStackTrace();
+ }
+ }
+ reader = null;
+ }
+ }
+ }
+ } catch (Exception e) {
+ e.printStackTrace();
+ }
+ };
+ }.start();
+ }
  */
 
 /**
@@ -116,6 +115,9 @@ public class CrashHandler implements UncaughtExceptionHandler {
 	// 用于格式化日期,作为日志文件名的一部分
 	private DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 
+	// crash log file path
+	private String logPath;
+
 	/** 保证只有一个CrashHandler实例 */
 	private CrashHandler() {
 	}
@@ -132,6 +134,9 @@ public class CrashHandler implements UncaughtExceptionHandler {
 	 */
 	public void init(Context context) {
 		mContext = context;
+		
+		logPath = "Android/data/" + mContext.getPackageName() + "/crash/";
+		
 		// 获取系统默认的UncaughtException处理器
 		mDefaultHandler = Thread.getDefaultUncaughtExceptionHandler();
 		// 设置该CrashHandler为程序的默认处理器
@@ -251,7 +256,9 @@ public class CrashHandler implements UncaughtExceptionHandler {
 					Environment.MEDIA_MOUNTED)) {
 				// String path = "/sdcard/crash/";
 				String path = Environment.getExternalStorageDirectory()
-						.getAbsolutePath() + "/vwdoctor/crash/";
+						.getAbsolutePath()
+						+ File.separator
+						+ INSTANCE.logPath;
 
 				File dir = new File(path);
 				if (!dir.exists()) {
@@ -270,19 +277,19 @@ public class CrashHandler implements UncaughtExceptionHandler {
 
 	public static File[] getCrashFiles() {
 		File[] crashLog = null;
-		
+
 		if (Environment.getExternalStorageState().equals(
 				Environment.MEDIA_MOUNTED)) {
 			// String path = "/sdcard/crash/";
 			String path = Environment.getExternalStorageDirectory()
-					.getAbsolutePath() + "/vwdoctor/crash/";
+					.getAbsolutePath() + File.separator + INSTANCE.logPath;
 
 			File dir = new File(path);
-			if(dir.exists()){
+			if (dir.exists()) {
 				crashLog = dir.listFiles();
 			}
 		}
-		
+
 		return crashLog;
 	}
 }
