@@ -5,6 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 
 public final class Tools {
 	private Tools() {
@@ -197,5 +198,14 @@ public final class Tools {
 			return defaultValue;
 		}
 		return p.doubleValue();
+	}
+
+	/**
+	 * 返回主线程，UI线程
+	 * 
+	 * @return
+	 */
+	public static Thread getMainThread() {
+		return Looper.getMainLooper().getThread();
 	}
 }
